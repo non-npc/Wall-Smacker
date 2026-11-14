@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wall Smacker</title>
+<link rel="stylesheet" href="style.css">
+<script defer src="catalog.js"></script>
+<script defer src="audio.js"></script>
+<script defer src="game.js"></script>
+</head>
+<body>
+<header class="top"><div class="top-inner">
+  <div class="brand"><span aria-hidden="true">✦</span> WALL SMACKER</div>
+  <div class="top-actions"><span id="save-status">Local autosave</span><button id="sound-toggle" class="plain" aria-pressed="true">Sound on</button><button id="save-menu" class="plain">Options</button></div>
+</div></header>
+<main>
+  <div class="intro"><div><p class="label" id="wall-number"></p><h1>Break the wall<span>.</span></h1></div><div class="currency"><span class="label">Training points</span><strong id="points">0</strong></div></div>
+  <div class="layout">
+    <div class="left">
+      <section class="arena" aria-labelledby="material">
+        <div class="wall-heading"><div><p class="label" id="layer-number"></p><h2 id="material"></h2></div><span id="percent"></span></div>
+        <div id="wall-progress" class="bar health" role="progressbar" aria-label="Wall health"><i></i></div>
+        <div class="hp"><span id="hp"></span><span id="max-hp"></span></div>
+        <div id="strike-zone" class="strike-zone">
+          <button id="punch"><span class="fist" aria-hidden="true">✊</span><strong>PUNCH WALL</strong><small id="last-hit">Click or press Space</small></button>
+          <button id="weak-spot" type="button" aria-label="Strike weak spot" hidden><span aria-hidden="true"><b id="weak-time"></b><i id="weak-fill"></i></span></button>
+          <button id="fracture" type="button" aria-label="Strike fracture" hidden>
+            <svg viewBox="0 0 120 48" aria-hidden="true"><path id="fracture-path" /></svg>
+            <span id="fracture-time"></span>
+          </button>
+          <div id="fracture-debris" aria-hidden="true"></div>
+          <div id="wall-debris" aria-hidden="true"></div>
+          <div id="float" aria-hidden="true"></div>
+        </div>
+        <div class="actions" id="combat-actions" hidden>
+          <button id="charge" hidden>Charge punch</button><button id="finisher" hidden>Finisher</button><button id="focus-power" hidden>Controlled Power</button><button id="target-lock" hidden>Target Lock</button><button id="all-in" hidden>All In</button>
+        </div>
+        <div id="timing-panel" hidden><div class="timing-label"><span>Rhythm</span><span id="timing-tip">Hit in the bright zone</span></div><div class="timing"><i></i><b></b></div></div>
+        <div id="focus-panel" hidden><div class="timing-label"><span>Focus</span><span id="focus-value"></span></div><div id="focus-bar" class="bar"><i></i></div></div>
+        <div id="event-panel" hidden><div><strong id="event-title"></strong><p id="event-description"></p></div></div>
+        <div id="victory" hidden><h3>Wall destroyed!</h3><p id="victory-summary"></p><button id="next-wall">Take on the next wall →</button></div>
+      </section>
+      <section class="stat-grid" aria-label="Punch statistics">
+        <div><span>Power / hit</span><strong id="power"></strong></div><div><span>Auto hits / sec</span><strong id="auto-rate"></strong></div><div><span>Critical chance</span><strong id="crit"></strong></div><div><span>Combo</span><strong id="combo"></strong></div>
+      </section>
+      <section class="panel activity"><h2>Activity</h2><ol id="log" aria-live="polite" aria-relevant="additions"></ol></section>
+    </div>
+    <section class="panel training">
+      <div class="panel-head"><h2>Progression</h2><p id="objective"></p></div>
+      <div class="tabs" aria-label="Progression views">
+        <button data-tab="upgrades" aria-pressed="true">Skills<span id="upgrades-new" class="tab-badge tab-new" hidden>New</span><span id="upgrades-affordable" class="tab-badge tab-affordable" hidden></span></button><button data-tab="routines" aria-pressed="false">Generators<span id="routines-new" class="tab-badge tab-new" hidden>New</span><span id="routines-affordable" class="tab-badge tab-affordable" hidden></span></button><button data-tab="records" aria-pressed="false">Achievements</button>
+      </div>
+      <div id="filters" class="filters"></div>
+      <div id="catalog"></div>
+    </section>
+  </div>
+</main>
+<footer class="credits">
+  <p>Credits · Copyright &copy; 2026 <a href="https://github.com/non-npc" target="_blank" rel="noopener noreferrer">non-npc</a></p>
+</footer>
+<div id="toast" role="status"></div>
+<dialog id="save-dialog"><form method="dialog"><button class="close" aria-label="Close">×</button></form><h2>Options</h2><p>Progress autosaves in this browser. Export a backup to move it to another browser or folder.</p><div class="actions"><button id="export">Export save</button><button id="import">Import save</button><input id="save-file" type="file" accept=".json,application/json" hidden><button id="reset" class="danger">Reset game</button></div><p><label for="sound-volume">Sound volume</label> <input id="sound-volume" type="range" min="0" max="100" value="60"></p><p id="save-message" role="status"></p></dialog>
+</body>
+</html>
