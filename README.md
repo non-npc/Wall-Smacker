@@ -12,4 +12,6 @@ Smack the wall
 
 Progress autosaves in the browser. In **Options**, export a JSON backup and import it on another device or after moving the project. Automatic generators operate while the game is open. Temporary combat effects reset when you reload or change walls.
 
-Copyright © 2026 non-npc
+## License
+
+This project is licensed under MIT license - see the [LICENSE](LICENSE) file for details.

@@ -130,3 +130,14 @@ main{padding:32px 0 44px}.intro{margin-bottom:25px}.label{margin:0;font:700 .73r
 
 .credits{text-align:center;padding:0 16px 24px;color:var(--muted);font-size:.85rem}
 .credits a{color:var(--purple);text-underline-offset:.15em}
+
+/* Clear, formula-driven current vs next-level progression previews. */
+.effect-preview{margin-top:7px;padding:8px 10px;border:1px solid #ddd2ed;border-radius:8px;background:#f7f2fd;max-width:390px}
+.effect-name{display:block;font-size:.72rem;font-weight:750;color:#5b4771;margin-bottom:5px}
+.effect-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.effect-values span{display:grid;gap:2px;min-width:0}
+.effect-values em{font-size:.68rem;font-style:normal;color:#726780}
+.effect-values strong{font-size:.85rem;color:#40334f;overflow-wrap:anywhere}
+.effect-values strong.effect-next{color:#23834d}
+.effect-extra{border-top:1px solid #e3d8ec;margin-top:6px;padding-top:5px;color:#615173;font-size:.7rem;line-height:1.35}
+@media(max-width:450px){.effect-preview{padding:7px}.effect-values{gap:6px}.effect-values strong{font-size:.78rem}}

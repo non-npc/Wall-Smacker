@@ -148,7 +148,7 @@ function floatingDamage(amount, kind, caption, color) {
   number.style.setProperty("--impact-x", (21+Math.random()*58)+"%");
   number.style.setProperty("--impact-y", (46+Math.random()*37)+"%");
   number.style.setProperty("--drift", (Math.random()*28-14)+"px");
-  number.textContent = "−"+short(amount);
+  number.textContent = "−"+(amount<100 && Math.abs(amount-Math.round(amount))>1e-7 ? previewNumber(amount) : short(amount));
   if (caption) {
     const label = document.createElement("small");
     label.textContent = caption;
@@ -159,7 +159,7 @@ function floatingDamage(amount, kind, caption, color) {
   setTimeout(()=>number.remove(),1000);
 }
 function displayHit(amount, tags, earned) {
-  $("last-hit").textContent = "−"+short(amount)+" HP · "+(earned<1 ? "<1" : "+"+exact(Math.floor(earned)))+" TP"+(tags.length ? " · "+tags.join(" · ") : "");
+  $("last-hit").textContent = "−"+(amount<100 && Math.abs(amount-Math.round(amount))>1e-7 ? previewNumber(amount) : short(amount))+" HP · "+(earned<1 ? "<1" : "+"+exact(Math.floor(earned)))+" TP"+(tags.length ? " · "+tags.join(" · ") : "");
   const critical = tags.includes("Critical");
   const weak = tags.includes("Weak spot");
   const charged = tags.includes("Charged");
@@ -434,11 +434,89 @@ function tick() {
   render(now);
 }
 
-function row(title,description,detail,actions="",locked=false,icon="") {
+// Describes each skill's real gameplay effect at the current and next level.
+// Conditional effects are labelled so previews never imply an unconditional bonus.
+const previewNumber = n => Number(n.toFixed(2)).toLocaleString("en-US",{maximumFractionDigits:2});
+const previewPercent = n => previewNumber(n)+"%";
+const previewSeconds = ms => previewNumber(ms/1000)+"s";
+function skillEffect(id,lv) {
+  switch (id) {
+    case "harder": return {name:"Base punch damage",value:previewNumber(1+.01*lv)+" HP",extra:"Base TP/hit: "+previewNumber(1+.02*lv)};
+    case "plant": return {name:"First hit after pause",value:"+"+previewPercent(15*lv)+" damage"};
+    case "hip": return {name:"Clean-hit bonus",value:"+"+previewPercent(12*lv)+" damage"};
+    case "drive": return {name:"Later-layer bonus",value:"+"+previewPercent(12*lv)+" damage"};
+    case "body": return {name:"Every 10th hit",value:"+"+previewPercent(35*lv)+" damage"};
+    case "force": return {name:"Charged punch bonus",value:"+"+previewPercent(50*lv)+" damage"};
+    case "quick": return {name:"Routine speed bonus",value:"+"+previewPercent(10*lv)};
+    case "windup": return {name:"Charge time",value:lv ? previewSeconds(1800/(1+.22*lv)) : "Not unlocked"};
+    case "recovery": return {name:"Charge cooldown",value:previewSeconds(2400/(1+.21*lv))};
+    case "jabs": return {name:"Every 5th hit",value:"+"+previewPercent(10*lv)+" damage"};
+    case "burst": return {name:"Flurry damage bonus",value:"+"+previewPercent(20*lv)};
+    case "wind": return {name:"Speed at combo 30+",value:"+"+previewPercent(9*lv)};
+    case "rhythm": return {name:"Clean timing window",value:lv ? previewPercent((.105+.018*lv)*200)+" of bar" : "Not unlocked"};
+    case "align": return {name:"Critical chance",value:previewPercent(Math.min(70,2*lv))};
+    case "aim": return {name:"Weak-spot bonus",value:"+"+previewPercent(25*lv)+" damage"};
+    case "read": return {name:"Weak-spot duration",value:previewSeconds(5000+450*lv)};
+    case "pin": return {name:"Clean weak-spot hit",value:lv ? "Guaranteed crit; +"+previewPercent(10*lv)+" damage" : "No guaranteed crit"};
+    case "perfect": return {name:"Weak-spot crit multiplier",value:previewNumber(2+.25*lv)+"×"};
+    case "stamina": return {name:"Flurry energy capacity",value:previewNumber(20+6*lv+10*level("reserves"))};
+    case "pacing": return {name:"Flurry energy regen",value:previewNumber(.8+.32*lv)+"/sec"};
+    case "breath": return {name:"Combo duration",value:previewSeconds(3900+240*lv+160*level("keep"))};
+    case "shoulders": return {name:"Energy per flurry",value:previewNumber(Math.max(4,12-.7*lv))};
+    case "reserves": return {name:"Flurry energy capacity",value:previewNumber(20+6*level("stamina")+10*lv),extra:"Starting energy bonus: +"+previewNumber(5*lv)};
+    case "marathon": return {name:"Max auto-streak damage bonus",value:"+"+previewPercent(10*lv)};
+    case "pair": return {name:"Even combo hit",value:"+"+previewPercent(15*lv)+" damage"};
+    case "follow": return {name:"Max combo damage bonus",value:"+"+previewPercent(15*lv)};
+    case "double": return {name:"Clean manual hit",value:"+"+previewPercent(10*lv)+" damage"};
+    case "keep": return {name:"Combo duration",value:previewSeconds(3900+240*level("breath")+160*lv)};
+    case "chain": return {name:"Every 10th combo hit",value:"+"+previewPercent(25*lv)+" damage"};
+    case "finish": return {name:"Finisher at combo 15",value:lv ? previewNumber(3+15*(.05+.01*lv))+"×" : "Not unlocked"};
+    case "surface": return {name:"Damaged-layer bonus",value:"+"+previewPercent(10*lv)};
+    case "same": return {name:"At combo 10+",value:"+"+previewPercent(8*lv)+" damage"};
+    case "stress": return {name:"Crack progress per heavy hit",value:previewNumber(3+lv)};
+    case "spread": return {name:"Later-layer temporary bonus",value:"+"+previewPercent(lv ? 18*lv : 0)};
+    case "buckle": return {name:"Charged-hit weakening",value:lv ? "+18% for 5.5s (refreshes)" : "Not unlocked"};
+    case "support": return {name:"Extra breach damage",value:"+"+previewPercent(25*lv)};
+    case "focus": return {name:"Focus per clean hit",value:lv ? previewNumber(4+2*lv) : "Not unlocked"};
+    case "composure": return {name:"Focus decay",value:previewNumber(1.15/(1+.3*lv))+"/sec"};
+    case "control": return {name:"Controlled Power bonus",value:lv ? "+"+previewPercent(25*lv)+" damage" : "Not unlocked"};
+    case "target": return {name:"Target Lock extension",value:lv ? previewSeconds(2500+500*lv) : "Not unlocked"};
+    case "flow": return {name:"Clean hit at 50+ Focus",value:lv ? "+12% damage (fixed)" : "Not unlocked"};
+    case "all": return {name:"All In at 100 Focus",value:lv ? previewNumber(2+100*(.045+.006*lv))+"×" : "Not unlocked"};
+    default: return {name:"Skill effect",value:lv ? "Enabled" : "Not unlocked"};
+  }
+}
+function generatorEffect(item,lv) {
+  if (!lv) return {name:"Generator",value:"Not activated"};
+  if (!item.interval) return {name:"Automation",value:"Enabled"};
+  const speedBonus = 1+.1*level("quick")+(run.combo>=30 ? .09*level("wind") : 0)+
+    (item.id==="relentless" ? Math.min(1,run.autoStreak/100)*.14*lv : 0);
+  const period = item.interval/((1+.09*(lv-1))*speedBonus*(lv>=10 ? 2 : 1));
+  const perHit = item.mult ? (attackDamage[item.id] || 0)*(item.mult*(1+.16*(lv-1)))*(1+.01*level("harder")) : 0;
+  const effect = {name:"Action interval",value:previewSeconds(period)};
+  if (perHit) effect.extra="Base action damage: "+previewNumber(perHit)+(item.id==="flurry" ? " per strike (4 strikes)" : item.id==="alternate" ? " per strike (2 strikes)" : " per strike");
+  else if (item.id==="strength") effect.extra="Heavy-hit strength gain: +"+previewNumber(.14*lv)+" per action (max +3)";
+  else if (item.id==="footwork") effect.extra="Event timer reduction: "+previewSeconds(400*lv)+" per action";
+  else if (item.id==="conditioning") effect.extra="Flurry energy restored: "+previewNumber(2*lv)+" per action";
+  else if (item.id==="focusDrill") effect.extra="Focus generated: "+previewNumber(3*lv)+" per action";
+  return effect;
+}
+function effectPreview(item,lv) {
+  const current = item.routine ? generatorEffect(item,lv) : skillEffect(item.id,lv);
+  const next = lv<item.max ? (item.routine ? generatorEffect(item,lv+1) : skillEffect(item.id,lv+1)) : null;
+  const escape = value => String(value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  return '<div class="effect-preview" aria-label="'+escape(current.name)+' preview">'+
+    '<span class="effect-name">'+escape(current.name)+'</span><div class="effect-values">'+
+    '<span><em>Current</em><strong>'+escape(current.value)+'</strong></span>'+
+    '<span><em>'+(next ? 'Next level' : 'Maximum')+'</em><strong class="'+(next ? 'effect-next' : '')+'">'+escape(next ? next.value : 'Maxed')+'</strong></span></div>'+
+    (current.extra || next?.extra ? '<div class="effect-extra">'+escape(current.extra || '—')+
+      (next ? ' → '+escape(next.extra || '—') : '')+'</div>' : '')+'</div>';
+}
+function row(title,description,detail,actions="",locked=false,icon="",preview="") {
   return '<article class="row'+(locked ? ' locked' : '')+(icon ? ' has-icon' : '')+'">'+
     (icon ? '<span class="item-icon" aria-hidden="true"><span>'+icon+'</span></span>' : '')+
     '<div><h3>'+title+
-    '</h3><p>'+description+'</p>'+(detail ? '<small>'+detail+'</small>' : '')+
+    '</h3><p>'+description+'</p>'+(detail ? '<small>'+detail+'</small>' : '')+preview+
     '</div><div class="row-actions">'+actions+'</div></article>';
 }
 const upgradeGroups = branches.map(([name])=>[name,upgrades.filter(item=>item.branch===name)]);
@@ -523,7 +601,7 @@ function renderCatalog() {
       const prerequisites = !lv && !unmet.length ? Object.entries(item.req)
         .map(([id,min])=>itemById[id].name+" Lv. "+min) : [];
       const description = item.description+(prerequisites.length ? " Requires "+prerequisites.join(" · ")+ "." : "");
-      return row(item.name,description,detail,buttons,unmet.length,itemIcons[item.id]);
+      return row(item.name,description,detail,buttons,unmet.length,itemIcons[item.id],item.routine ? "" : effectPreview(item,lv));
     }).join("");
   }
   $("catalog").innerHTML=tab==="routines" ? renderItems(routines) : groups.map(([name,group])=>
@@ -546,7 +624,7 @@ function render(now=performance.now()) {
   $("max-hp").textContent="/ "+exact(total());
   $("points").textContent=exact(Math.floor(s.points));
   $("points").title="Training Points earned from manual and automatic hits";
-  $("power").textContent=short(basePower());
+  $("power").textContent=previewNumber(basePower());
   const rate = routines.reduce((sum,item)=>sum+(item.interval && item.mult && level(item.id)
     ? (item.id==="alternate" ? 2 : item.id==="flurry" ? 4 : 1)/interval(item) : 0),0)+(level("autoCharge") && level("windup") ? 1000/(chargeTime()+chargeCooldown()) : 0);
   $("auto-rate").textContent=rate>0 && rate<1 ? "<1" : exact(rate);
