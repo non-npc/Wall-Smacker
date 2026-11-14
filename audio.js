@@ -1,5 +1,5 @@
 "use strict";
-// Sound synthesis and cue recipes adapted from Glitchy Incremental's scripts/audio.js.
+// Sound synthesis
 const wallAudio = {
   ctx: null,
   master: null,
